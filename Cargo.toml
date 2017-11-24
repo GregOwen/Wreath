@@ -1,0 +1,6 @@
+[package]
+name = "gitfun"
+version = "0.1.0"
+authors = ["GregOwen <greowen@gmail.com>"]
+
+[dependencies]
