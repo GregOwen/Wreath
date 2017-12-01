@@ -22,9 +22,7 @@ fn main() {
     let rewritten_contents = get_rewritten_contents(&replacement_contents, &rebase_contents);
     println!("Got rewritten contents:\n{}", rewritten_contents);
 
-    //   Format replacement file
-    //   Write formatted replacement
-
+    write_str_to_file(&rewritten_contents, &config.rebase_filepath);
 }
 
 struct Config {
@@ -72,6 +70,7 @@ fn get_replacement_lines(replacement_contents: &str, num_commits: usize) -> Vec<
 fn rewrite_commit_lines(commit_lines: Vec<&str>, replacement_lines: Vec<&str>) -> String {
     let mut output: String = String::new();
     for (i, commit_line) in commit_lines.iter().enumerate() {
+        // TODO(greg): move this logic into get_replacement_lines
         // If we have more commits than replacement lines, just loop
         let replacement_idx = i % (replacement_lines.len());
         let replacement_line = replacement_lines[replacement_idx];
@@ -82,4 +81,12 @@ fn rewrite_commit_lines(commit_lines: Vec<&str>, replacement_lines: Vec<&str>) -
         output.push_str(&format!("reword {} {}\n", commit_hash, replacement_line))
     };
     output
+}
+
+fn write_str_to_file(contents: &str, filepath: &str) {
+    let mut f = File::create(filepath)
+        .expect(&format!("Could not create file at path '{}'", filepath));
+
+    f.write_all(contents.as_bytes())
+        .expect(&format!("Could not write to file at path '{}'", filepath));
 }
