@@ -5,7 +5,7 @@ use std::env;
 fn main() {
     // Parse args
     let args: Vec<String> = env::args().collect();
-    println!("{:?}", args);
+    println!("sequence_editor args: {:?}", args);
     let config = parse_config(&args);
 
     // Read in replacement file
