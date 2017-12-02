@@ -1,6 +1,22 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
+use std::fs::File;
+use std::io::prelude::*;
+
+pub fn read_file_contents(filepath: &str) -> String {
+    println!("Received file '{}'", filepath);
+    let mut f = File::open(filepath)
+        .expect(&format!("Could not open file at path '{}'", filepath));
+
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)
+        .expect(&format!("Error reading file at path '{}'", filepath));
+
+    contents
+}
+
+pub fn write_str_to_file(contents: &str, filepath: &str) {
+    let mut f = File::create(filepath)
+        .expect(&format!("Could not create file at path '{}'", filepath));
+
+    f.write_all(contents.as_bytes())
+        .expect(&format!("Could not write to file at path '{}'", filepath));
 }

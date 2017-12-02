@@ -1,6 +1,6 @@
+extern crate gitfun;
+
 use std::env;
-use std::fs::File;
-use std::io::prelude::*;
 
 fn main() {
     // Parse args
@@ -9,20 +9,20 @@ fn main() {
     let config = parse_config(&args);
 
     // Read in replacement file
-    let replacement_contents = read_file_contents(&config.replacement_filepath);
+    let replacement_contents = gitfun::read_file_contents(&config.replacement_filepath);
 
     println!("Got replacement contents:\n{}", replacement_contents);
     println!("");
 
     // Read in rebase file
-    let rebase_contents = read_file_contents(&config.rebase_filepath);
+    let rebase_contents = gitfun::read_file_contents(&config.rebase_filepath);
     println!("Got rebase contents:\n{}", rebase_contents);
 
     // Write out new rebase file
     let rewritten_contents = get_rewritten_contents(&replacement_contents, &rebase_contents);
     println!("Got rewritten contents:\n{}", rewritten_contents);
 
-    write_str_to_file(&rewritten_contents, &config.rebase_filepath);
+    gitfun::write_str_to_file(&rewritten_contents, &config.rebase_filepath);
 }
 
 struct Config {
@@ -35,18 +35,6 @@ fn parse_config(args: &[String]) -> Config {
     let rebase_filepath = args[2].clone();
 
     Config { replacement_filepath, rebase_filepath }
-}
-
-fn read_file_contents(filepath: &str) -> String {
-    println!("Received file '{}'", filepath);
-    let mut f = File::open(filepath)
-        .expect(&format!("Could not open file at path '{}'", filepath));
-
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect(&format!("Error reading file at path '{}'", filepath));
-
-    contents
 }
 
 fn get_rewritten_contents(replacement_contents: &str, rebase_contents: &str) -> String {
@@ -81,12 +69,4 @@ fn rewrite_commit_lines(commit_lines: Vec<&str>, replacement_lines: Vec<&str>) -
         output.push_str(&format!("reword {} {}\n", commit_hash, replacement_line))
     };
     output
-}
-
-fn write_str_to_file(contents: &str, filepath: &str) {
-    let mut f = File::create(filepath)
-        .expect(&format!("Could not create file at path '{}'", filepath));
-
-    f.write_all(contents.as_bytes())
-        .expect(&format!("Could not write to file at path '{}'", filepath));
 }
