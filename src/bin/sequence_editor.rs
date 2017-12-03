@@ -62,6 +62,7 @@ fn get_replacement_lines(replacement_contents: &str, num_commits: usize) -> Vec<
 fn prepare_replacements_for_output(replacement_lines: Vec<&str>) -> String {
     // Explicit type annotation necessary
     let output_lines: Vec<String> = replacement_lines.iter()
+        .rev() // Write out commits in reverse order so that earliest commit gets last line of msg
         .map(|line| [gitfun::TODO_PREFIX, line].concat())
         .collect();
     output_lines.join("\n")
