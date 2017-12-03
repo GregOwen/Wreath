@@ -1,7 +1,6 @@
 extern crate gitfun;
 
 use std::env;
-use std::process::Command;
 
 fn main() {
     // Parse args
@@ -10,33 +9,34 @@ fn main() {
     let filepath = args[1].clone();
 
     // Get message we need to write
-    let msg = get_commit_message();
+    let msg = next_commit_message();
     println!("Got message:\n{}", msg);
 
     // Write message to file
     gitfun::write_str_to_file(&msg, &filepath);
 }
 
-fn get_commit_message() -> String {
-    let env_path = env::var("PATH")
-        .expect(&format!("Input environment {:?} had no PATH var", env::vars()));
+/// This will read the next commit message from the tracker file and mark it as read.
+/// DO NOT call this function more than once.
+fn next_commit_message() -> String {
+    let tracker_contents = gitfun::read_file_contents(gitfun::TRACKER_FILE_NAME);
+    let next_message = get_next_message(&tracker_contents);
 
-    // We use the equivalent of EDITOR=cat git rebase --edit-todo | head -1
-    // This should look like "reword $HASH $MSG"
-    let cmd = Command::new("git")
-        .env_clear()
-        .env("PATH", env_path)
-        .env("EDITOR", "cat")
-        .arg("rebase")
-        .arg("--edit-todo")
-        .output()
-        .expect("Failed to execute git command");
+    let new_tracker_contents = consume_one_message(&tracker_contents);
+    gitfun::write_str_to_file(&new_tracker_contents, gitfun::TRACKER_FILE_NAME);
 
-    let stdout_str = String::from_utf8_lossy(&cmd.stdout);
-    let commit_line = stdout_str.split("\n").next()
-        .expect(&format!("stdout_str was empty!"));
+    next_message
+}
+
+fn get_next_message(tracker_contents: &str) -> String {
     // Explicit type annotation necessary
-    let commit_words: Vec<&str> = commit_line.split(" ").skip(2).collect();
+    let raw_message_lines: Vec<&str> = tracker_contents.split("\n").collect();
+    let message_line = raw_message_lines.iter()
+        .find(|&&line| line.starts_with(gitfun::TODO_PREFIX))
+        .expect(&format!("Found no message lines that began with '{}'", gitfun::TODO_PREFIX));
+    message_line.split_at(gitfun::TODO_PREFIX.len()).1.to_string()
+}
 
-    commit_words.join(" ")
+fn consume_one_message(old_tracker_contents: &str) -> String {
+    old_tracker_contents.clone().replacen(gitfun::TODO_PREFIX, gitfun::DONE_PREFIX, 1)
 }

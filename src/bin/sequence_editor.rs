@@ -18,11 +18,15 @@ fn main() {
     let rebase_contents = gitfun::read_file_contents(&config.rebase_filepath);
     println!("Got rebase contents:\n{}", rebase_contents);
 
-    // Write out new rebase file
-    let rewritten_contents = get_rewritten_contents(&replacement_contents, &rebase_contents);
-    println!("Got rewritten contents:\n{}", rewritten_contents);
+    // Write out new commit message file
+    let new_commit_messages = get_new_commit_messages(&replacement_contents, &rebase_contents);
+    // TODO(greg): put this in a tmp file and clean it up
+    gitfun::write_str_to_file(&new_commit_messages, gitfun::TRACKER_FILE_NAME);
+    println!("Got new commit messages:\n{}", new_commit_messages);
 
-    gitfun::write_str_to_file(&rewritten_contents, &config.rebase_filepath);
+    // Write out new rebase file
+    let new_rebase_contents = get_new_rebase_contents(&rebase_contents);
+    gitfun::write_str_to_file(&new_rebase_contents, &config.rebase_filepath);
 }
 
 struct Config {
@@ -37,14 +41,13 @@ fn parse_config(args: &[String]) -> Config {
     Config { replacement_filepath, rebase_filepath }
 }
 
-fn get_rewritten_contents(replacement_contents: &str, rebase_contents: &str) -> String {
+fn get_new_commit_messages(replacement_contents: &str, rebase_contents: &str) -> String {
     let commit_line_blob = rebase_contents.split("\n\n").next()
         .expect(&format!("Rebase contents '{}' contains no commit lines", rebase_contents));
 
-    // Explicit type annotation necessary
-    let commit_lines: Vec<&str> = commit_line_blob.split("\n").collect();
-    let replacement_lines = get_replacement_lines(replacement_contents, commit_lines.len());
-    rewrite_commit_lines(commit_lines, replacement_lines)
+    let num_commit_lines = commit_line_blob.split("\n").count();
+    let replacement_lines = get_replacement_lines(replacement_contents, num_commit_lines);
+    prepare_replacements_for_output(replacement_lines)
 }
 
 /// Given the total blob that we have as our replacement text and the number of commits for which we
@@ -52,21 +55,18 @@ fn get_rewritten_contents(replacement_contents: &str, rebase_contents: &str) -> 
 /// commits. Eventually, this will allow multiple strategies. For now, we just take the first
 /// num_commits lines from replacement_contents.
 fn get_replacement_lines(replacement_contents: &str, num_commits: usize) -> Vec<&str> {
+    // TODO(greg): handle the case where we have more commits than replacement lines
     replacement_contents.split("\n").take(num_commits).collect()
 }
 
-fn rewrite_commit_lines(commit_lines: Vec<&str>, replacement_lines: Vec<&str>) -> String {
-    let mut output: String = String::new();
-    for (i, commit_line) in commit_lines.iter().enumerate() {
-        // TODO(greg): move this logic into get_replacement_lines
-        // If we have more commits than replacement lines, just loop
-        let replacement_idx = i % (replacement_lines.len());
-        let replacement_line = replacement_lines[replacement_idx];
-        // Commit lines look like "pick $HASH $MESSAGE"
-        let commit_hash = commit_line.split_whitespace().nth(1)
-            .expect(&format!("Failed to parse hash code from line '{}'", commit_line));
+fn prepare_replacements_for_output(replacement_lines: Vec<&str>) -> String {
+    // Explicit type annotation necessary
+    let output_lines: Vec<String> = replacement_lines.iter()
+        .map(|line| [gitfun::TODO_PREFIX, line].concat())
+        .collect();
+    output_lines.join("\n")
+}
 
-        output.push_str(&format!("reword {} {}\n", commit_hash, replacement_line))
-    };
-    output
+fn get_new_rebase_contents(old_rebase_contents: &str) -> String {
+    old_rebase_contents.clone().replace("pick", "reword")
 }
