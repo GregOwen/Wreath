@@ -4,6 +4,8 @@ use std::io::prelude::*;
 pub const DONE_PREFIX: &str = "DONE||";
 pub const TODO_PREFIX: &str = "TODO||";
 
+pub const EDITOR_BINARY_NAME: &str = "editor";
+pub const SEQUENCE_EDITOR_BINARY_NAME: &str = "sequence_editor";
 pub const TRACKER_FILE_NAME: &str = ".gitfun_tracker";
 
 pub fn read_file_contents(filepath: &str) -> String {
