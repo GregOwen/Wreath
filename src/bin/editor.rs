@@ -40,3 +40,47 @@ fn get_next_message(tracker_contents: &str) -> String {
 fn consume_one_message(old_tracker_contents: &str) -> String {
     old_tracker_contents.clone().replacen(gitfun::TODO_PREFIX, gitfun::DONE_PREFIX, 1)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_next_message_works_for_first_line() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::TODO_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
+        let next_message = get_next_message(&input);
+        assert_eq!(next_message, "Test line 1");
+    }
+
+    #[test]
+    fn get_next_message_works_for_later_line() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
+        let next_message = get_next_message(&input);
+        assert_eq!(next_message, "Test line 2");
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_next_message_panics_when_all_lines_consumed() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::DONE_PREFIX, gitfun::DONE_PREFIX);
+        get_next_message(&input);
+    }
+
+    #[test]
+    fn consume_one_message_consumes_only_first_unconsumed_message() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
+        let expected = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::DONE_PREFIX, gitfun::TODO_PREFIX);
+        let after_consumption = consume_one_message(&input);
+        assert_eq!(expected, after_consumption);
+    }
+}
