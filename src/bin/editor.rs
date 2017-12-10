@@ -33,11 +33,18 @@ fn get_next_message(tracker_contents: &str) -> String {
     let raw_message_lines: Vec<&str> = tracker_contents.split("\n").collect();
     let message_line = raw_message_lines.iter()
         .find(|&&line| line.starts_with(gitfun::TODO_PREFIX))
-        .expect(&format!("Found no message lines that began with '{}'", gitfun::TODO_PREFIX));
+        .expect(&format!(
+            "Could not get next message: found no message lines that began with '{}'",
+            gitfun::TODO_PREFIX));
     message_line.split_at(gitfun::TODO_PREFIX.len()).1.to_string()
 }
 
 fn consume_one_message(old_tracker_contents: &str) -> String {
+    if !old_tracker_contents.contains(gitfun::TODO_PREFIX) {
+        panic!(
+            "Could not consume message: found no message lines that began with '{}'",
+            gitfun::TODO_PREFIX);
+    }
     old_tracker_contents.clone().replacen(gitfun::TODO_PREFIX, gitfun::DONE_PREFIX, 1)
 }
 
@@ -46,7 +53,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_next_message_works_for_first_line() {
+    fn get_next_message_works_when_all_lines_todo() {
         let input = format!(
             "{}Test line 1\n{}Test line 2\n{}Test line 3",
             gitfun::TODO_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
@@ -55,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn get_next_message_works_for_later_line() {
+    fn get_next_message_works_when_some_line_done() {
         let input = format!(
             "{}Test line 1\n{}Test line 2\n{}Test line 3",
             gitfun::DONE_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
@@ -65,7 +72,7 @@ mod tests {
 
     #[test]
     #[should_panic]
-    fn get_next_message_panics_when_all_lines_consumed() {
+    fn get_next_message_panics_when_all_lines_done() {
         let input = format!(
             "{}Test line 1\n{}Test line 2\n{}Test line 3",
             gitfun::DONE_PREFIX, gitfun::DONE_PREFIX, gitfun::DONE_PREFIX);
@@ -73,7 +80,19 @@ mod tests {
     }
 
     #[test]
-    fn consume_one_message_consumes_only_first_unconsumed_message() {
+    fn consume_one_message_works_when_all_lines_todo() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::TODO_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
+        let expected = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
+        let after_consumption = consume_one_message(&input);
+        assert_eq!(expected, after_consumption);
+    }
+
+    #[test]
+    fn consume_one_message_works_when_some_line_done() {
         let input = format!(
             "{}Test line 1\n{}Test line 2\n{}Test line 3",
             gitfun::DONE_PREFIX, gitfun::TODO_PREFIX, gitfun::TODO_PREFIX);
@@ -82,5 +101,14 @@ mod tests {
             gitfun::DONE_PREFIX, gitfun::DONE_PREFIX, gitfun::TODO_PREFIX);
         let after_consumption = consume_one_message(&input);
         assert_eq!(expected, after_consumption);
+    }
+
+    #[test]
+    #[should_panic]
+    fn consume_one_message_panics_when_all_lines_done() {
+        let input = format!(
+            "{}Test line 1\n{}Test line 2\n{}Test line 3",
+            gitfun::DONE_PREFIX, gitfun::DONE_PREFIX, gitfun::DONE_PREFIX);
+        consume_one_message(&input);
     }
 }
