@@ -2,7 +2,6 @@ extern crate gitfun;
 
 use std::env;
 use std::path::Path;
-use std::process::Command;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -38,15 +37,5 @@ fn invoke_git_command(config: Config) {
         &config.editor_binpath,
         &config.sequence_editor_binpath,
         &config.replacement_filepath);
-
-    let mut base_cmd: Command = Command::new("bash");
-    let mut cmd: &mut Command = base_cmd
-        .arg("-c")
-        .arg(command_string);
-
-    println!("gitfun running command: {:?}", cmd);
-
-    cmd
-        .status()
-        .expect("git command failed to start");
+    gitfun::exec_command(&command_string, None);
 }

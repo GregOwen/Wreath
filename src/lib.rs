@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::process::{Command, Output};
 
 pub const DONE_PREFIX: &str = "DONE||";
 pub const TODO_PREFIX: &str = "TODO||";
@@ -7,6 +8,20 @@ pub const TODO_PREFIX: &str = "TODO||";
 pub const EDITOR_BINARY_NAME: &str = "editor";
 pub const SEQUENCE_EDITOR_BINARY_NAME: &str = "sequence_editor";
 pub const TRACKER_FILE_NAME: &str = ".gitfun_tracker";
+
+pub fn exec_command(command_string: &str, dir: Option<&str>) -> Output {
+    let mut base_cmd: Command = Command::new("bash");
+    let mut cmd: &mut Command = base_cmd
+        .arg("-c")
+        .arg(command_string)
+        .current_dir(dir.unwrap_or("."));
+
+    println!("running command: {:?}", cmd);
+
+    cmd
+        .output()
+        .expect("command failed to start")
+}
 
 pub fn read_file_contents(filepath: &str) -> String {
     println!("Received file '{}'", filepath);
