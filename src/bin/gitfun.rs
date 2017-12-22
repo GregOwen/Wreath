@@ -9,6 +9,8 @@ fn main() {
     let config = parse_config(&args);
 
     invoke_git_command(config);
+    // TODO(greg): better exception handling + do this as a finally
+    clean();
 }
 
 struct Config {
@@ -38,4 +40,9 @@ fn invoke_git_command(config: Config) {
         &config.sequence_editor_binpath,
         &config.replacement_filepath);
     gitfun::exec_command(&command_string, None);
+}
+
+fn clean() {
+    // Remove the tracker file
+    gitfun::exec_command(&format!("rm {}", gitfun::TRACKER_FILE_NAME), None);
 }
