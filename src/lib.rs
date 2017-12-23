@@ -45,3 +45,5 @@ pub fn write_str_to_file(contents: &str, filepath: &str) {
     f.write_all(contents.as_bytes())
         .expect(&format!("Could not write to file at path '{}'", filepath));
 }
+
+pub mod strategies;
