@@ -1,6 +1,8 @@
+#[macro_use] extern crate log;
+
 use std::fs::File;
 use std::io::prelude::*;
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 pub const DONE_PREFIX: &str = "DONE||";
 pub const TODO_PREFIX: &str = "TODO||";
@@ -11,12 +13,13 @@ pub const TRACKER_FILE_NAME: &str = ".gitfun_tracker";
 
 pub fn exec_command(command_string: &str, dir: Option<&str>) -> Output {
     let mut base_cmd: Command = Command::new("bash");
-    let mut cmd: &mut Command = base_cmd
+    let cmd: &mut Command = base_cmd
         .arg("-c")
         .arg(command_string)
-        .current_dir(dir.unwrap_or("."));
+        .current_dir(dir.unwrap_or("."))
+        .stderr(Stdio::inherit());
 
-    println!("running command: {:?}", cmd);
+    trace!("running command: {:?}", cmd);
 
     cmd
         .output()
@@ -24,7 +27,7 @@ pub fn exec_command(command_string: &str, dir: Option<&str>) -> Output {
 }
 
 pub fn read_file_contents(filepath: &str) -> String {
-    println!("Received file '{}'", filepath);
+    trace!("Received file '{}'", filepath);
     let mut f = File::open(filepath)
         .expect(&format!("Could not open file at path '{}'", filepath));
 

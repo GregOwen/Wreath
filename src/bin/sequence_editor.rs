@@ -1,28 +1,33 @@
+extern crate env_logger;
 extern crate gitfun;
+#[macro_use] extern crate log;
 
 use std::env;
 
 fn main() {
+    // Start logging
+    env_logger::init().unwrap();
+
     // Parse args
     let args: Vec<String> = env::args().collect();
-    println!("sequence_editor args: {:?}", args);
+    debug!("sequence_editor args: {:?}", args);
     let config = parse_config(&args);
 
     // Read in replacement file
     let replacement_contents = gitfun::read_file_contents(&config.replacement_filepath);
 
-    println!("Got replacement contents:\n{}", replacement_contents);
-    println!("");
+    debug!("Got replacement contents:\n{}", replacement_contents);
+    debug!("");
 
     // Read in rebase file
     let rebase_contents = gitfun::read_file_contents(&config.rebase_filepath);
-    println!("Got rebase contents:\n{}", rebase_contents);
+    debug!("Got rebase contents:\n{}", rebase_contents);
 
     // Write out new commit message file
     let new_commit_messages = get_new_commit_messages(&replacement_contents, &rebase_contents);
     // TODO(greg): put this in a tmp file and clean it up
     gitfun::write_str_to_file(&new_commit_messages, gitfun::TRACKER_FILE_NAME);
-    println!("Got new commit messages:\n{}", new_commit_messages);
+    debug!("Got new commit messages:\n{}", new_commit_messages);
 
     // Write out new rebase file
     let new_rebase_contents = get_new_rebase_contents(&rebase_contents);

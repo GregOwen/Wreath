@@ -1,16 +1,21 @@
+extern crate env_logger;
 extern crate gitfun;
+#[macro_use] extern crate log;
 
 use std::env;
 
 fn main() {
+    // Start logging
+    env_logger::init().unwrap();
+
     // Parse args
     let args: Vec<String> = env::args().collect();
-    println!("editor args: {:?}", args);
+    debug!("editor args: {:?}", args);
     let filepath = args[1].clone();
 
     // Get message we need to write
     let msg = next_commit_message();
-    println!("Got message:\n{}", msg);
+    debug!("Got message:\n{}", msg);
 
     // Write message to file
     gitfun::write_str_to_file(&msg, &filepath);

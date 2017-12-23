@@ -1,11 +1,16 @@
+extern crate env_logger;
 extern crate gitfun;
+#[macro_use] extern crate log;
 
 use std::env;
 use std::path::Path;
 
 fn main() {
+    // Start logging
+    env_logger::init().unwrap();
+
     let args: Vec<String> = env::args().collect();
-    println!("gitfun args: {:?}", args);
+    debug!("gitfun args: {:?}", args);
     let config = parse_config(&args);
 
     invoke_git_command(config);
@@ -39,6 +44,7 @@ fn invoke_git_command(config: Config) {
         &config.editor_binpath,
         &config.sequence_editor_binpath,
         &config.replacement_filepath);
+    debug!("Executing top-level command '{}'", &command_string);
     gitfun::exec_command(&command_string, None);
 }
 
