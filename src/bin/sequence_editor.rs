@@ -51,8 +51,8 @@ fn get_new_commit_messages(replacement_contents: &str, rebase_contents: &str) ->
         .expect(&format!("Rebase contents '{}' contains no commit lines", rebase_contents));
 
     let num_commit_lines = commit_line_blob.split("\n").count();
-    let replacement_lines = gitfun::strategies::get_replacement_lines(
-        replacement_contents, num_commit_lines);
+    let get_replacement_lines = gitfun::strategies::get_replacement_lines_strategy("FIRST_N");
+    let replacement_lines = get_replacement_lines(replacement_contents, num_commit_lines);
     prepare_replacements_for_output(replacement_lines)
 }
 
