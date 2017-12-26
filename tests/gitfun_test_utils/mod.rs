@@ -47,11 +47,12 @@ fn setup_message_file(dir_path: &Path, new_commit_message_contents: &str) {
     let file_name = file_path.to_string_lossy();
     gitfun::write_str_to_file(new_commit_message_contents, &file_name);
     gitfun::exec_command(
-        &format!("git add {} && git commit -m 'message file'", file_name),
+        &format!("git add {} && git commit -m 'commit 0'", file_name),
         dir_path.to_str());
 }
 
 fn setup_commit_files(dir_path: &Path, num_commits: usize) {
+    // Must start at 1 because the message file is commit 0
     for i in 1..num_commits {
         add_file_and_commit(dir_path, i);
     }

@@ -55,11 +55,35 @@ fn get_new_commit_messages(
     let commit_line_blob = rebase_contents.split("\n\n").next()
         .expect(&format!("Rebase contents '{}' contains no commit lines", rebase_contents));
 
-    let num_commit_lines = commit_line_blob.split("\n").count();
+    let commit_messages = get_commit_messages_latest_first(commit_line_blob);
+    let num_commit_messages = commit_messages.len();
+
     let get_replacement_lines =
         gitfun::strategies::get_replacement_lines_strategy(replacement_strategy);
-    let replacement_lines = get_replacement_lines(replacement_contents, num_commit_lines);
+    let mut replacement_lines = get_replacement_lines(replacement_contents, num_commit_messages);
+
+    // Our get_replacement_lines strategy may return fewer lines than we have commits. In this case,
+    // we leave the remaining commit messages unchanged.
+    if replacement_lines.len() < num_commit_messages {
+        let (_, remaining_commit_messages) = commit_messages.split_at(replacement_lines.len());
+        replacement_lines.extend_from_slice(remaining_commit_messages);
+    }
+
     prepare_replacements_for_output(replacement_lines)
+}
+
+fn get_commit_messages_latest_first(rebase_line_blob: &str) -> Vec<&str> {
+    rebase_line_blob
+        .lines()
+        .map(extract_git_message_from_rebase_line)
+        .rev() // The input blob shows the earliest commit first
+        .collect()
+}
+
+fn extract_git_message_from_rebase_line(rebase_line: &str) -> &str {
+    // Each line looks like "pick $HASH $MESSAGE"
+    rebase_line.splitn(3, " ").nth(2)
+        .expect(&format!("Could not extract git commit message from rebase line '{}'", rebase_line))
 }
 
 fn prepare_replacements_for_output(replacement_lines: Vec<&str>) -> String {
