@@ -19,5 +19,5 @@ pub fn get_replacement_lines_strategy<'a>(
 
 /// Simple strategy: just take the first num_commits lines from replacement_contents.
 fn get_replacement_lines<'a>(replacement_contents: &'a str, num_commits: usize) -> Vec<&'a str> {
-    replacement_contents.split("\n").take(num_commits).collect()
+    replacement_contents.lines().take(num_commits).collect()
 }

@@ -73,12 +73,12 @@ fn verify_setup(dir_path: &Path, num_commits: usize) {
     let ls_res = gitfun::exec_command("ls", dir_str).stdout;
     let files = String::from_utf8_lossy(&ls_res);
     trace!("verify_setup created files:\n{}", files);
-    assert_eq!(files.trim_right().split("\n").collect::<Vec<&str>>().len(), num_commits);
+    assert_eq!(files.trim_right().lines().collect::<Vec<&str>>().len(), num_commits);
 
     let git_res = gitfun::exec_command("git log --pretty=oneline", dir_str).stdout;
     let commits = String::from_utf8_lossy(&git_res);
     trace!("verify_setup created commits:\n{}", commits);
-    assert_eq!(commits.trim_right().split("\n").collect::<Vec<&str>>().len(), num_commits);
+    assert_eq!(commits.trim_right().lines().collect::<Vec<&str>>().len(), num_commits);
 }
 
 fn run_binary(dir_path: &Path, strategy: Option<&str>) {
@@ -112,7 +112,7 @@ fn verify_no_changes(dir_path: &Path, num_commits: usize) {
 
     // . .. .git
     let desired_num_files = num_commits + 3;
-    let observed_num_files = files.trim_right().split("\n").collect::<Vec<&str>>().len();
+    let observed_num_files = files.trim_right().lines().collect::<Vec<&str>>().len();
     assert_eq!(
         observed_num_files,
         desired_num_files,

@@ -35,7 +35,7 @@ fn next_commit_message() -> String {
 
 fn get_next_message(tracker_contents: &str) -> String {
     // Explicit type annotation necessary
-    let raw_message_lines: Vec<&str> = tracker_contents.split("\n").collect();
+    let raw_message_lines: Vec<&str> = tracker_contents.lines().collect();
     let message_line = raw_message_lines.iter()
         .find(|&&line| line.starts_with(gitfun::TODO_PREFIX))
         .expect(&format!(
