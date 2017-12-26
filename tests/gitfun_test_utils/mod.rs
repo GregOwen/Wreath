@@ -10,7 +10,7 @@ pub struct TestConfig<'a> {
     pub new_commit_message_contents: &'a str,
     pub num_commits: usize,
     pub strategy: Option<&'a str>,
-    pub verify_new_messages: fn(&Path, &str),
+    pub expected_new_messages: &'a str,
 }
 
 pub fn end_to_end_test(config: TestConfig) {
@@ -32,7 +32,7 @@ pub fn end_to_end_test(config: TestConfig) {
     run_binary(&temp_dir_path, config.strategy);
 
     // verify binary had desired effect
-    (config.verify_new_messages)(&temp_dir_path, config.new_commit_message_contents);
+    verify_new_messages(&temp_dir_path, config.expected_new_messages);
     verify_no_changes(&temp_dir_path, config.num_commits);
 }
 
@@ -101,6 +101,16 @@ fn get_executable_path() -> String {
     let root_dir = String::from_utf8_lossy(&root_dir_res);
     let root_dir_path = Path::new(root_dir.trim_right());
     root_dir_path.join("target").join("debug").join("gitfun").to_string_lossy().into_owned()
+}
+
+fn verify_new_messages(dir_path: &Path, expected_new_messages: &str) {
+    let dir_str = dir_path.to_str();
+
+    // Observed git commit messages
+    let git_res = gitfun::exec_command("git log --pretty=format:%s", dir_str).stdout;
+    let commits = String::from_utf8_lossy(&git_res);
+
+    assert_eq!(*commits, *expected_new_messages);
 }
 
 fn verify_no_changes(dir_path: &Path, num_commits: usize) {
