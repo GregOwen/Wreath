@@ -9,7 +9,7 @@ const NEW_COMMIT_MESSAGE_FILE: &str = "new_message.txt";
 pub struct TestConfig<'a> {
     pub new_commit_message_contents: &'a str,
     pub num_commits: usize,
-    pub strategy: &'a str,
+    pub strategy: Option<&'a str>,
     pub verify_new_messages: fn(&Path, &str),
 }
 
@@ -80,14 +80,16 @@ fn verify_setup(dir_path: &Path, num_commits: usize) {
     assert_eq!(commits.trim_right().split("\n").collect::<Vec<&str>>().len(), num_commits);
 }
 
-fn run_binary(dir_path: &Path, strategy: &str) {
+fn run_binary(dir_path: &Path, strategy: Option<&str>) {
     let dir_str = dir_path.to_str();
     let executable_path = get_executable_path();
     debug!("Got executable_path: {:?}", executable_path);
+    let env_str = &strategy.map_or(
+        String::new(),
+        |s| format!("{}='{}'", gitfun::strategies::REPLACEMENT_STRATEGY_ENV_VAR, s));
     let command_str = format!(
-        "{}='{}' {} {}",
-        gitfun::strategies::REPLACEMENT_STRATEGY_ENV_VAR,
-        strategy,
+        "{} {} {}",
+        &env_str,
         executable_path,
         NEW_COMMIT_MESSAGE_FILE);
     gitfun::exec_command(&command_str, dir_str);

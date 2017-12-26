@@ -15,12 +15,22 @@ Said he, 'It was written in Jest!'";
 const NUM_COMMITS: usize = 5;
 
 #[test]
-fn test_first_n() {
-    env_logger::init().unwrap();
+fn test_default_is_first_n() {
     let config = gitfun_test_utils::TestConfig {
         new_commit_message_contents: NEW_COMMIT_MESSAGE_CONTENTS,
         num_commits: NUM_COMMITS,
-        strategy: "FIRST_N",
+        strategy: None,
+        verify_new_messages: verify_new_messages_first_n,
+    };
+    gitfun_test_utils::end_to_end_test(config);
+}
+
+#[test]
+fn test_first_n() {
+    let config = gitfun_test_utils::TestConfig {
+        new_commit_message_contents: NEW_COMMIT_MESSAGE_CONTENTS,
+        num_commits: NUM_COMMITS,
+        strategy: Some("FIRST_N"),
         verify_new_messages: verify_new_messages_first_n,
     };
     gitfun_test_utils::end_to_end_test(config);
