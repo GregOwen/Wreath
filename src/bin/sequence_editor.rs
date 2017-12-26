@@ -24,8 +24,8 @@ fn main() {
     debug!("Got rebase contents:\n{}", rebase_contents);
 
     // Write out new commit message file
-    let new_commit_messages = get_new_commit_messages(&replacement_contents, &rebase_contents);
-    // TODO(greg): put this in a tmp file and clean it up
+    let new_commit_messages = get_new_commit_messages(
+        &replacement_contents, &rebase_contents, &config.replacement_strategy);
     gitfun::write_str_to_file(&new_commit_messages, gitfun::TRACKER_FILE_NAME);
     debug!("Got new commit messages:\n{}", new_commit_messages);
 
@@ -35,23 +35,29 @@ fn main() {
 }
 
 struct Config {
-    replacement_filepath: String,
     rebase_filepath: String,
+    replacement_filepath: String,
+    replacement_strategy: String,
 }
 
 fn parse_config(args: &[String]) -> Config {
     let replacement_filepath = args[1].clone();
     let rebase_filepath = args[2].clone();
 
-    Config { replacement_filepath, rebase_filepath }
+    let replacement_strategy = env::var(gitfun::strategies::REPLACEMENT_STRATEGY_ENV_VAR)
+        .unwrap_or(String::from(gitfun::strategies::DEFAULT_STRATEGY));
+
+    Config { rebase_filepath, replacement_filepath, replacement_strategy }
 }
 
-fn get_new_commit_messages(replacement_contents: &str, rebase_contents: &str) -> String {
+fn get_new_commit_messages(
+        replacement_contents: &str, rebase_contents: &str, replacement_strategy: &str) -> String {
     let commit_line_blob = rebase_contents.split("\n\n").next()
         .expect(&format!("Rebase contents '{}' contains no commit lines", rebase_contents));
 
     let num_commit_lines = commit_line_blob.split("\n").count();
-    let get_replacement_lines = gitfun::strategies::get_replacement_lines_strategy("FIRST_N");
+    let get_replacement_lines =
+        gitfun::strategies::get_replacement_lines_strategy(replacement_strategy);
     let replacement_lines = get_replacement_lines(replacement_contents, num_commit_lines);
     prepare_replacements_for_output(replacement_lines)
 }
