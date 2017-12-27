@@ -13,12 +13,13 @@ pub const REPLACEMENT_STRATEGY_ENV_VAR: &str = "GITFUN_STRATEGY";
 /// num_commits. If a strategy returns strictly fewer messages than we have commits, the most
 /// recent commits will have their messages overwritten and the remaining commits will have their
 /// messages unchanged.
-pub type Strategy = fn(&str, usize) -> Vec<&str>;
+pub type Strategy = fn(/* replacement_contents: */&str, /* num_commits: */usize) -> Vec<&str>;
 
 /// Select the strategy that we will use to rename the commits
 pub fn get_replacement_lines_strategy(strategy_name: &str) -> Strategy {
     match strategy_name {
         "FIRST_N" => first_n,
+        "CYCLE" => cycle,
         _ => panic!("Could not find strategy with the name '{}'", strategy_name),
     }
 }
@@ -26,4 +27,9 @@ pub fn get_replacement_lines_strategy(strategy_name: &str) -> Strategy {
 /// Simple strategy: just take the first num_commits lines from replacement_contents.
 fn first_n<'a>(replacement_contents: &'a str, num_commits: usize) -> Vec<&'a str> {
     replacement_contents.lines().take(num_commits).collect()
+}
+
+/// Slightly more complicated: repeat the replacement contents until we have num_commits messages.
+fn cycle<'a>(replacement_contents: &'a str, num_commits: usize) -> Vec<&'a str> {
+    replacement_contents.lines().cycle().take(num_commits).collect()
 }
