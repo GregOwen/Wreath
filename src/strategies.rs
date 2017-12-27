@@ -1,5 +1,5 @@
 pub const DEFAULT_STRATEGY: &str = "FIRST_N";
-pub const REPLACEMENT_STRATEGY_ENV_VAR: &str = "GITFUN_STRATEGY";
+pub const REPLACEMENT_STRATEGY_ENV_VAR: &str = "WREATH_STRATEGY";
 
 /// The strategy we will use to determine what the new commit messages should be.
 /// # Arguments

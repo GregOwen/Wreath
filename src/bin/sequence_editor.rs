@@ -1,5 +1,5 @@
 extern crate env_logger;
-extern crate gitfun;
+extern crate wreath;
 #[macro_use] extern crate log;
 
 use std::env;
@@ -14,24 +14,24 @@ fn main() {
     let config = parse_config(&args);
 
     // Read in replacement file
-    let replacement_contents = gitfun::read_file_contents(&config.replacement_filepath);
+    let replacement_contents = wreath::read_file_contents(&config.replacement_filepath);
 
     debug!("Got replacement contents:\n{}", replacement_contents);
     debug!("");
 
     // Read in rebase file
-    let rebase_contents = gitfun::read_file_contents(&config.rebase_filepath);
+    let rebase_contents = wreath::read_file_contents(&config.rebase_filepath);
     debug!("Got rebase contents:\n{}", rebase_contents);
 
     // Write out new commit message file
     let new_commit_messages = get_new_commit_messages(
         &replacement_contents, &rebase_contents, &config.replacement_strategy);
-    gitfun::write_str_to_file(&new_commit_messages, gitfun::TRACKER_FILE_NAME);
+    wreath::write_str_to_file(&new_commit_messages, wreath::TRACKER_FILE_NAME);
     debug!("Got new commit messages:\n{}", new_commit_messages);
 
     // Write out new rebase file
     let new_rebase_contents = get_new_rebase_contents(&rebase_contents);
-    gitfun::write_str_to_file(&new_rebase_contents, &config.rebase_filepath);
+    wreath::write_str_to_file(&new_rebase_contents, &config.rebase_filepath);
 }
 
 struct Config {
@@ -44,8 +44,8 @@ fn parse_config(args: &[String]) -> Config {
     let replacement_filepath = args[1].clone();
     let rebase_filepath = args[2].clone();
 
-    let replacement_strategy = env::var(gitfun::strategies::REPLACEMENT_STRATEGY_ENV_VAR)
-        .unwrap_or(String::from(gitfun::strategies::DEFAULT_STRATEGY));
+    let replacement_strategy = env::var(wreath::strategies::REPLACEMENT_STRATEGY_ENV_VAR)
+        .unwrap_or(String::from(wreath::strategies::DEFAULT_STRATEGY));
 
     Config { rebase_filepath, replacement_filepath, replacement_strategy }
 }
@@ -59,7 +59,7 @@ fn get_new_commit_messages(
     let num_commit_messages = commit_messages.len();
 
     let get_replacement_lines =
-        gitfun::strategies::get_replacement_lines_strategy(replacement_strategy);
+        wreath::strategies::get_replacement_lines_strategy(replacement_strategy);
     let mut replacement_lines = get_replacement_lines(replacement_contents, num_commit_messages);
 
     // Our get_replacement_lines strategy may return fewer lines than we have commits. In this case,
@@ -90,7 +90,7 @@ fn prepare_replacements_for_output(replacement_lines: Vec<&str>) -> String {
     // Explicit type annotation necessary
     let output_lines: Vec<String> = replacement_lines.iter()
         .rev() // Write out commits in reverse order so that earliest commit gets last line of msg
-        .map(|line| [gitfun::TODO_PREFIX, line].concat())
+        .map(|line| [wreath::TODO_PREFIX, line].concat())
         .collect();
     output_lines.join("\n")
 }

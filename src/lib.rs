@@ -9,7 +9,7 @@ pub const TODO_PREFIX: &str = "TODO||";
 
 pub const EDITOR_BINARY_NAME: &str = "editor";
 pub const SEQUENCE_EDITOR_BINARY_NAME: &str = "sequence_editor";
-pub const TRACKER_FILE_NAME: &str = ".gitfun_tracker";
+pub const TRACKER_FILE_NAME: &str = ".wreath_tracker";
 
 pub fn exec_command(command_string: &str, dir: Option<&str>) -> Output {
     let mut base_cmd: Command = Command::new("bash");

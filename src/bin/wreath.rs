@@ -1,5 +1,5 @@
 extern crate env_logger;
-extern crate gitfun;
+extern crate wreath;
 #[macro_use] extern crate log;
 
 use std::env;
@@ -10,7 +10,7 @@ fn main() {
     env_logger::init().unwrap();
 
     let args: Vec<String> = env::args().collect();
-    debug!("gitfun args: {:?}", args);
+    debug!("wreath args: {:?}", args);
     let config = parse_config(&args);
 
     invoke_git_command(config);
@@ -27,9 +27,9 @@ struct Config {
 fn parse_config(args: &[String]) -> Config {
     // Get path to other binaries. Assume they are in the same directory as this binary.
     let this_binpath = Path::new(&args[0]);
-    let editor_binpath = this_binpath.with_file_name(gitfun::EDITOR_BINARY_NAME)
+    let editor_binpath = this_binpath.with_file_name(wreath::EDITOR_BINARY_NAME)
         .to_string_lossy().into_owned();
-    let sequence_editor_binpath = this_binpath.with_file_name(gitfun::SEQUENCE_EDITOR_BINARY_NAME)
+    let sequence_editor_binpath = this_binpath.with_file_name(wreath::SEQUENCE_EDITOR_BINARY_NAME)
         .to_string_lossy().into_owned();
 
     // Get path to replacement messages
@@ -45,10 +45,10 @@ fn invoke_git_command(config: Config) {
         &config.sequence_editor_binpath,
         &config.replacement_filepath);
     debug!("Executing top-level command '{}'", &command_string);
-    gitfun::exec_command(&command_string, None);
+    wreath::exec_command(&command_string, None);
 }
 
 fn clean() {
     // Remove the tracker file
-    gitfun::exec_command(&format!("rm {}", gitfun::TRACKER_FILE_NAME), None);
+    wreath::exec_command(&format!("rm {}", wreath::TRACKER_FILE_NAME), None);
 }
